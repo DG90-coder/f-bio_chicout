@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Nodo {
+    int valor;
+    struct Nodo* proximo;
+} Nodo;
+
+Nodo* encontrar_ponto_medio(Nodo* cabeca) {
+    Nodo* lento = cabeca;
+    Nodo* rapido = cabeca;
+
+    while (rapido != NULL && rapido->proximo != NULL) {
+        rapido = rapido->proximo->proximo;
+        if (rapido != NULL) {
+            lento = lento->proximo;
+        }
+    }
+
+    return lento;
+}
+
+int main() {
+    // Criação de uma lista de exemplo: 1 -> 2 -> 3 -> 4 -> 5
+    Nodo* lista = (Nodo*)malloc(sizeof(Nodo));
+    lista->valor = 1;
+    lista->proximo = (Nodo*)malloc(sizeof(Nodo));
+    lista->proximo->valor = 2;
+    lista->proximo->proximo = (Nodo*)malloc(sizeof(Nodo));
+    lista->proximo->proximo->valor = 3;
+    lista->proximo->proximo->proximo = (Nodo*)malloc(sizeof(Nodo));
+    lista->proximo->proximo->proximo->valor = 4;
+    lista->proximo->proximo->proximo->proximo = (Nodo*)malloc(sizeof(Nodo));
+    lista->proximo->proximo->proximo->proximo->valor = 5;
+    lista->proximo->proximo->proximo->proximo->proximo = NULL;
+
+    Nodo* meio = encontrar_ponto_medio(lista);
+    printf("O valor no ponto medio eh: %d\n", meio->valor);
+
+    // Liberar memória
+    Nodo* atual = lista;
+    while (atual != NULL) {
+        Nodo* proximo = atual->proximo;
+        free(atual);
+        atual = proximo;
+    }
+
+    return 0;
+}
