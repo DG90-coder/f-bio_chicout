@@ -1,101 +1,122 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
-// Definição da estrutura do nó da lista encadeada
-typedef struct Node {
-    int valor;
-    struct Node *proximo;
-} Node;
+#define MAX_PALAVRA 100
+#define MAX_TEXTO 10000
 
-// Função iterativa para verificar se duas listas são iguais
-int saoIguaisIterativo(Node *lista1, Node *lista2) {
-    while (lista1 != NULL && lista2 != NULL) {
-        if (lista1->valor != lista2->valor) {
-            return 0; // As listas não são iguais
+typedef struct {
+    char palavra[MAX_PALAVRA];
+    int frequencia;
+} Palavra;
+
+int contar_palavras(char* texto, Palavra palavras[], int* total_distintas) {
+    char* token = strtok(texto, " ,.!?\n");
+    int total_palavras = 0;
+    *total_distintas = 0;
+
+    while (token != NULL) {
+        total_palavras++;
+        
+        // Converter palavra para minúsculas
+        for (char* p = token; *p; p++) *p = tolower(*p);
+        
+        // Verificar se a palavra já está na lista
+        int encontrada = 0;
+        for (int i = 0; i < *total_distintas; i++) {
+            if (strcmp(palavras[i].palavra, token) == 0) {
+                palavras[i].frequencia++;
+                encontrada = 1;
+                break;
+            }
         }
-        lista1 = lista1->proximo;
-        lista2 = lista2->proximo;
+        if (!encontrada) {
+            strcpy(palavras[*total_distintas].palavra, token);
+            palavras[*total_distintas].frequencia = 1;
+            (*total_distintas)++;
+        }
+        
+        token = strtok(NULL, " ,.!?\n");
     }
-    // Ambas devem terminar ao mesmo tempo para serem iguais
-    return (lista1 == NULL && lista2 == NULL);
+    return total_palavras;
 }
 
-// Função recursiva para verificar se duas listas são iguais
-int saoIguaisRecursivo(Node *lista1, Node *lista2) {
-    if (lista1 == NULL && lista2 == NULL) {
-        return 1; // Ambas as listas terminaram
+int contar_letras(char* palavra) {
+    int count = 0;
+    while (*palavra) {
+        if (isalpha(*palavra)) count++;
+        palavra++;
     }
-    if (lista1 == NULL || lista2 == NULL || lista1->valor != lista2->valor) {
-        return 0; // Uma lista terminou antes da outra ou valores diferentes
-    }
-    return saoIguaisRecursivo(lista1->proximo, lista2->proximo);
+    return count;
 }
 
-// Função auxiliar para criar um novo nó
-Node *criarNo(int valor) {
-    Node *novoNo = (Node *)malloc(sizeof(Node));
-    if (!novoNo) {
-        printf("Erro ao alocar memória.\n");
-        exit(1);
+double calcular_media_letras(Palavra palavras[], int total_distintas) {
+    int total_letras = 0;
+    for (int i = 0; i < total_distintas; i++) {
+        total_letras += contar_letras(palavras[i].palavra) * palavras[i].frequencia;
     }
-    novoNo->valor = valor;
-    novoNo->proximo = NULL;
-    return novoNo;
+    return (double)total_letras / total_distintas;
 }
 
-// Função auxiliar para imprimir uma lista
-void imprimirLista(Node *head) {
-    Node *atual = head;
-    while (atual != NULL) {
-        printf("%d -> ", atual->valor);
-        atual = atual->proximo;
+char* encontrar_maior_palavra(Palavra palavras[], int total_distintas) {
+    char* maior_palavra = palavras[0].palavra;
+    for (int i = 1; i < total_distintas; i++) {
+        if (strlen(palavras[i].palavra) > strlen(maior_palavra)) {
+            maior_palavra = palavras[i].palavra;
+        }
     }
-    printf("NULL\n");
+    return maior_palavra;
 }
 
-// Função principal para testar
+char* encontrar_menor_palavra(Palavra palavras[], int total_distintas) {
+    char* menor_palavra = palavras[0].palavra;
+    for (int i = 1; i < total_distintas; i++) {
+        if (strlen(palavras[i].palavra) < strlen(menor_palavra)) {
+            menor_palavra = palavras[i].palavra;
+        }
+    }
+    return menor_palavra;
+}
+
+char* encontrar_palavra_mais_frequente(Palavra palavras[], int total_distintas) {
+    char* mais_frequente = palavras[0].palavra;
+    int max_frequencia = palavras[0].frequencia;
+    for (int i = 1; i < total_distintas; i++) {
+        if (palavras[i].frequencia > max_frequencia) {
+            mais_frequente = palavras[i].palavra;
+            max_frequencia = palavras[i].frequencia;
+        }
+    }
+    return mais_frequente;
+}
+
+char* encontrar_palavra_mais_rara(Palavra palavras[], int total_distintas) {
+    char* mais_rara = palavras[0].palavra;
+    int min_frequencia = palavras[0].frequencia;
+    for (int i = 1; i < total_distintas; i++) {
+        if (palavras[i].frequencia < min_frequencia) {
+            mais_rara = palavras[i].palavra;
+            min_frequencia = palavras[i].frequencia;
+        }
+    }
+    return mais_rara;
+}
+
 int main() {
-    // Criando duas listas encadeadas de exemplo
-    Node *lista1 = criarNo(1);
-    lista1->proximo = criarNo(2);
-    lista1->proximo->proximo = criarNo(3);
+    char texto[MAX_TEXTO] = "Escreva um programa que receba um texto longo uma redacao e que monte uma lista das palavras existentes no texto.";
+    Palavra palavras[MAX_PALAVRA];
+    int total_distintas;
 
-    Node *lista2 = criarNo(1);
-    lista2->proximo = criarNo(2);
-    lista2->proximo->proximo = criarNo(3);
+    int total_palavras = contar_palavras(texto, palavras, &total_distintas);
+    printf("Total de palavras: %d\n", total_palavras);
+    printf("Total de palavras distintas: %d\n", total_distintas);
+    printf("Media de letras por palavra: %.2f\n", calcular_media_letras(palavras, total_distintas));
+    printf("Maior palavra: %s\n", encontrar_maior_palavra(palavras, total_distintas));
+    printf("Menor palavra: %s\n", encontrar_menor_palavra(palavras, total_distintas));
+    printf("Palavra mais frequente: %s\n", encontrar_palavra_mais_frequente(palavras, total_distintas));
+    printf("Palavra mais rara: %s\n", encontrar_palavra_mais_rara(palavras, total_distintas));
 
-    printf("Lista 1: ");
-    imprimirLista(lista1);
-
-    printf("Lista 2: ");
-    imprimirLista(lista2);
-
-    // Testando a função iterativa
-    if (saoIguaisIterativo(lista1, lista2)) {
-        printf("As listas são iguais (iterativo).\n");
-    } else {
-        printf("As listas NÃO são iguais (iterativo).\n");
-    }
-
-    // Testando a função recursiva
-    if (saoIguaisRecursivo(lista1, lista2)) {
-        printf("As listas são iguais (recursivo).\n");
-    } else {
-        printf("As listas NÃO são iguais (recursivo).\n");
-    }
-
-    // Liberando memória
-    Node *atual;
-    while (lista1 != NULL) {
-        atual = lista1;
-        lista1 = lista1->proximo;
-        free(atual);
-    }
-    while (lista2 != NULL) {
-        atual = lista2;
-        lista2 = lista2->proximo;
-        free(atual);
-    }
-
-    return 0;
+    return 0;
 }
+
